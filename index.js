@@ -697,11 +697,21 @@ const b2CloudStorage = class {
 		if(data.appendPath !== false){
 			apiUrl.pathname += `b2api/${this.version}/${data.url}`;
 		}
-		const requestData = _.defaults(data, {
-			method: 'get',
-			json: true,
-			headers: {}
-		});
+		let requestData = {};
+        if (data.url.endsWith('b2_download_file_by_id')) {
+            requestData = _.defaults(data, {
+                method: 'get',
+                json: true,
+                headers: {},
+				encoding: null
+            });
+        } else {
+            let requestData = _.defaults(data, {
+                method: 'get',
+                json: true,
+                headers: {}
+            });
+		}
 		requestData.url = apiUrl.toString();
 		// if auth data is set from `authorize` function and we haven't overridden it via `data.auth` or request headers, set it for this request
 		if(this.authData && !data.auth && !requestData.headers.Authorization){
@@ -717,7 +727,8 @@ const b2CloudStorage = class {
 				return callback(new Error('Auth token expired, and unable to re-authenticate to acquire new token.'));
 			}
 			reqCount++;
-			let req = request(requestData, function(err, res, body){
+			
+			return request(requestData, function(err, res, body){
                 if(err){
                     return callback(err);
                 }
@@ -742,14 +753,9 @@ const b2CloudStorage = class {
                 if(res.headers['content-type'].includes('application/json') && typeof(body) === 'string'){
                     body = JSON.parse(body);
                 }
-                if (data.url.endsWith('b2_download_file_by_id')) {
-                    return callback(null, req, res.statusCode);
-                } else {
-                    return callback(null, body, res.statusCode);
-                }
-            });
 
-			return req;
+                return callback(null, body, res.statusCode);
+            });;
 		};
 		return doRequest();
 	}
