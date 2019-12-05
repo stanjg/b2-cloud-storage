@@ -742,7 +742,7 @@ const b2CloudStorage = class {
                 if(res.headers['content-type'].includes('application/json') && typeof(body) === 'string'){
                     body = JSON.parse(body);
                 }
-                if (requestData.url === 'b2_download_file_by_id') {
+                if (data.url.endsWith('b2_download_file_by_id')) {
                     return callback(null, req, res.statusCode);
                 } else {
                     return callback(null, body, res.statusCode);
