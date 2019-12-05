@@ -717,37 +717,39 @@ const b2CloudStorage = class {
 				return callback(new Error('Auth token expired, and unable to re-authenticate to acquire new token.'));
 			}
 			reqCount++;
-			return request(requestData, function(err, res, body){
-				if(err){
-					return callback(err);
-				}
-				// auth expired, re-authorize and then make request again
-				if(res.statusCode === 401 && body && body.code === 'expired_auth_token'){
-					return this.authorize(doRequest);
-				}
-				// todo: handle more response codes.
-				if(res.statusCode !== 200){
-					let error = null;
-					if(typeof(body) === 'string'){
-						error = new Error(body);
-					}
-					if(body.message){
-						error = new Error(body.message);
-					}
-					if(!error){
-						error = new Error('Invalid response from API.', body);
-					}
-					return callback(error, body);
-				}
-				if(res.headers['content-type'].includes('application/json') && typeof(body) === 'string'){
-					body = JSON.parse(body);
-				}
-				if (requestData.url === 'b2_download_file_by_id') {
-					return this;
-				} else {
+			let req = request(requestData, function(err, res, body){
+                if(err){
+                    return callback(err);
+                }
+                // auth expired, re-authorize and then make request again
+                if(res.statusCode === 401 && body && body.code === 'expired_auth_token'){
+                    return this.authorize(doRequest);
+                }
+                // todo: handle more response codes.
+                if(res.statusCode !== 200){
+                    let error = null;
+                    if(typeof(body) === 'string'){
+                        error = new Error(body);
+                    }
+                    if(body.message){
+                        error = new Error(body.message);
+                    }
+                    if(!error){
+                        error = new Error('Invalid response from API.', body);
+                    }
+                    return callback(error, body);
+                }
+                if(res.headers['content-type'].includes('application/json') && typeof(body) === 'string'){
+                    body = JSON.parse(body);
+                }
+                if (requestData.url === 'b2_download_file_by_id') {
+                    return callback(null, req, res.statusCode);
+                } else {
                     return callback(null, body, res.statusCode);
                 }
-			});
+            });
+
+			return req;
 		};
 		return doRequest();
 	}
