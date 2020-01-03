@@ -720,15 +720,11 @@ const b2CloudStorage = class {
 				return callback(new Error('Auth token expired, and unable to re-authenticate to acquire new token.'));
 			}
 			reqCount++;
-			console.log('Making request: ');
-			console.log(requestData);
 
 			return request(requestData, function(err, res, body){
                 if(err){
                     return callback(err);
                 }
-                console.log('We got a response: ');
-                console.log(body);
                 // auth expired, re-authorize and then make request again
                 if(res.statusCode === 401 && body && body.code === 'expired_auth_token'){
                     return this.authorize(doRequest);
